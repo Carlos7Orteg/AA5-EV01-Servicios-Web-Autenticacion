@@ -42,12 +42,12 @@ public class AuthService {
     public AuthResponse registrar(RegistroRequest request) {
         if (usuarioRepository.existsByCorreo(request.getCorreo())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "El correo ya se encuentra registrado");
+                    HttpStatus.CONFLICT, "El usuario ya existe");
         }
 
         if (usuarioRepository.existsByDocumento(request.getDocumento())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "El documento ya se encuentra registrado");
+                    HttpStatus.CONFLICT, "El usuario ya existe");
         }
 
         Usuario usuario = new Usuario();
@@ -60,7 +60,7 @@ public class AuthService {
         usuario.setRol(Usuario.Rol.USER);
 
         Usuario guardado = usuarioRepository.save(usuario);
-        return new AuthResponse(guardado);
+        return new AuthResponse(guardado, "Usuario registrado correctamente");
     }
 
     /**
@@ -74,13 +74,13 @@ public class AuthService {
         Usuario usuario = usuarioRepository
                 .findByCorreo(request.getCorreo().trim().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "Credenciales incorrectas"));
+                        HttpStatus.UNAUTHORIZED, "Error en la autenticación"));
 
         if (!passwordEncoder.matches(request.getContrasena(), usuario.getContrasena())) {
             throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
+                    HttpStatus.UNAUTHORIZED, "Error en la autenticación");
         }
 
-        return new AuthResponse(usuario);
+        return new AuthResponse(usuario, "Autenticación satisfactoria");
     }
 }

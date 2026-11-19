@@ -8,6 +8,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Expone los endpoints REST para registrar usuarios e iniciar sesión.
@@ -51,5 +54,21 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
         AuthResponse respuesta = authService.iniciarSesion(request);
         return ResponseEntity.ok(respuesta);
+    }
+    
+        @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> manejarError(
+            ResponseStatusException ex) {
+
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(Map.of("mensaje", ex.getReason()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> manejarValidacion(
+            MethodArgumentNotValidException ex) {
+
+        return ResponseEntity.badRequest()
+                .body(Map.of("mensaje", "Bad Request"));
     }
 }

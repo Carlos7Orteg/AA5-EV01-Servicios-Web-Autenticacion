@@ -13,6 +13,7 @@ public class AuthResponse {
     private String apellidos;
     private String correo;
     private String rol;
+    private String mensaje;
 
     /**
      * Construye la respuesta a partir de un usuario persistido.
@@ -25,6 +26,15 @@ public class AuthResponse {
         this.apellidos = usuario.getApellidos();
         this.correo = usuario.getCorreo();
         this.rol = usuario.getRol().name();
+    }
+    
+    public AuthResponse(Usuario usuario, String mensaje) {
+        this.idUsuario = usuario.getIdUsuario();
+        this.nombres = usuario.getNombres();
+        this.apellidos = usuario.getApellidos();
+        this.correo = usuario.getCorreo();
+        this.rol = usuario.getRol().name();
+        this.mensaje = mensaje;
     }
 
     public Integer getIdUsuario() {
@@ -45,5 +55,9 @@ public class AuthResponse {
 
     public String getRol() {
         return rol;
+    }
+    
+    public String getMensaje() {
+        return mensaje;
     }
 }
