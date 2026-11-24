@@ -33,4 +33,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
      * @return true si el documento ya está registrado
      */
     boolean existsByDocumento(String documento);
+
+    boolean existsByCorreoAndIdUsuarioNot(String correo, Integer idUsuario);
+
+    boolean existsByDocumentoAndIdUsuarioNot(String documento, Integer idUsuario);
 }

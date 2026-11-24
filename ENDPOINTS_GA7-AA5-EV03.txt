@@ -1,0 +1,41 @@
+BASE URL: http://localhost:8080
+
+AUTENTICACIÓN Y PERFIL
+POST   /api/auth/registro
+POST   /api/auth/login
+POST   /api/auth/logout
+GET    /api/auth/perfil
+PUT    /api/auth/perfil/datos
+PUT    /api/auth/perfil
+POST   /api/auth/perfil/eliminar
+
+USUARIOS
+GET    /api/usuarios
+GET    /api/usuarios/{id}
+POST   /api/usuarios
+PUT    /api/usuarios/{id}
+DELETE /api/usuarios/{id}
+
+EVENTOS
+GET    /api/eventos
+GET    /api/eventos/{id}
+POST   /api/eventos
+PUT    /api/eventos/{id}
+DELETE /api/eventos/{id}
+
+CATEGORÍAS
+GET    /api/categorias
+GET    /api/categorias/{id}
+POST   /api/categorias
+PUT    /api/categorias/{id}
+DELETE /api/categorias/{id}
+
+LUGARES
+GET    /api/lugares
+GET    /api/lugares/{id}
+POST   /api/lugares
+PUT    /api/lugares/{id}
+DELETE /api/lugares/{id}
+
+Las operaciones administrativas de escritura y las consultas CRUD de usuarios requieren sesión ADMIN.
+Las consultas de eventos, categorías y lugares son públicas para el catálogo React.
