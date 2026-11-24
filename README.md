@@ -1,430 +1,540 @@
-# Servicio Web de Autenticación – GA7-AA5-EV01
+# CulturaTech Bogotá --- GA7-AA5-EV03
 
-## 1. Descripción del proyecto
+Aplicación web para la gestión y consulta de eventos culturales. Esta
+entrega amplía el servicio de autenticación con una API REST para
+administrar usuarios, eventos, categorías y lugares, e integra un
+frontend desarrollado con React y Vite.
 
-Este proyecto desarrolla un servicio web de autenticación utilizando Spring Boot, Java y MySQL. Su propósito es permitir el registro de usuarios y la validación de credenciales mediante servicios REST.
+## 1. Tecnologías
 
-El servicio implementa dos operaciones principales:
+-   Java 21
+-   Spring Boot y Spring Web MVC
+-   Maven y Maven Wrapper
+-   Spring Data JPA / Hibernate
+-   MySQL 8
+-   React y Vite
+-   Axios
+-   BCrypt mediante `spring-security-crypto`
+-   Jakarta Bean Validation
 
-- **Registro:** recibe los datos de un usuario, verifica que no existan registros duplicados y almacena la contraseña cifrada.
-- **Inicio de sesión:** consulta el usuario registrado y verifica la contraseña suministrada.
+La aplicación utiliza sesiones HTTP (`JSESSIONID`) para mantener la
+autenticación. No utiliza JWT ni incorpora
+`spring-boot-starter-security`.
 
-El desarrollo corresponde a la evidencia **GA7-AA5-EV01 – Diseño y codificación de un servicio web para registro e inicio de sesión**.
+## 2. Funcionalidades
 
-## 2. Tecnologías utilizadas
+-   Registro e inicio/cierre de sesión.
+-   Acceso diferenciado según el rol `USER` o `ADMIN`.
+-   Consulta y actualización del perfil.
+-   Cambio de contraseña y eliminación de la cuenta.
+-   Consulta pública de eventos, categorías y lugares.
+-   Administración de usuarios, eventos, categorías y lugares por parte
+    del rol `ADMIN`.
+-   Almacenamiento de contraseñas mediante BCrypt.
+-   Favoritos y agenda gestionados en el frontend mediante
+    `localStorage`.
 
-| Tecnología | Propósito |
-|---|---|
-| Java 21 | Lenguaje de programación. |
-| Spring Boot | Construcción y ejecución del servicio web. |
-| Spring Web MVC | Implementación de los endpoints REST. |
-| Spring Data JPA | Acceso y persistencia de datos. |
-| Hibernate | Implementación de JPA y mapeo objeto-relacional. |
-| MySQL 8 | Sistema gestor de base de datos. |
-| BCrypt | Cifrado seguro de contraseñas. |
-| Maven | Gestión de dependencias y construcción del proyecto. |
-| Git y GitHub | Control de versiones y alojamiento del repositorio. |
+Las notificaciones no forman parte del alcance de esta entrega.
 
-## 3. Arquitectura del proyecto
+## 3. Requisitos previos
 
-El servicio utiliza una arquitectura por capas para separar las responsabilidades y facilitar el mantenimiento del código.
+Instalar y configurar:
 
-```text
-Cliente / Postman
-       |
-       v
-AuthController
-       |
-       v
-AuthService
-       |
-       v
-UsuarioRepository
-       |
-       v
-Base de datos MySQL
+-   JDK 21.
+-   MySQL 8.
+-   Node.js y npm.
+-   Git (opcional, para clonar el repositorio).
+
+## 4. Instalación y ejecución
+
+### 4.1. Obtener el proyecto
+
+Clonar el repositorio:
+
+``` bash
+git clone https://github.com/Carlos7Orteg/AA5-EV01-Servicios-Web-Autenticacion.git
+cd AA5-EV01-Servicios-Web-Autenticacion
 ```
 
-### Responsabilidad de cada capa
+Para trabajar con esta entrega, cambiar a la rama:
 
-- **Controller:** recibe las solicitudes HTTP, valida los datos de entrada y devuelve las respuestas.
-- **Service:** contiene la lógica de negocio para registrar usuarios y autenticar credenciales.
-- **Repository:** realiza las operaciones de consulta y persistencia mediante Spring Data JPA.
-- **Model:** representa la entidad que se almacena en la base de datos.
-- **DTO:** define los datos que recibe y devuelve el servicio.
-- **Config:** contiene la configuración necesaria para el cifrado de contraseñas.
+``` bash
+git checkout feature/AA5-EV03-servicios-web
+```
 
-## 4. Estructura del proyecto
+### 4.2. Preparar la base de datos
 
-```text
-AA5-EV01 Servicios Web Autenticacion/
-│
+1.  Iniciar el servicio de MySQL.
+2.  Ejecutar el script `database/auth_db.sql` en MySQL para crear la
+    base de datos y las tablas requeridas.
+3.  Configurar la conexión local a MySQL en
+    `src/main/resources/application.properties`.
+
+El archivo `application.properties` contiene configuración propia del
+entorno local y no debe sustituirse por el de otra instalación ni
+publicarse con credenciales reales. Si no está presente al descargar el
+repositorio, crear una configuración local compatible con la instalación
+de MySQL.
+
+### 4.3. Instalar las dependencias del frontend
+
+Desde la carpeta raíz del proyecto:
+
+``` bash
+cd frontend
+npm install
+```
+
+`npm install` descarga las dependencias definidas en `package.json` y
+crea la carpeta `node_modules` localmente. **No se debe incluir
+`node_modules` en el repositorio.**
+
+Para ejecutar el frontend durante el desarrollo:
+
+``` bash
+npm run dev
+```
+
+Vite inicia el servidor de desarrollo y reenvía las solicitudes `/api`
+al backend de Spring Boot, según la configuración del proyecto.
+
+### 4.4. Ejecutar el backend
+
+Desde la carpeta raíz:
+
+``` bash
+mvnw.cmd spring-boot:run
+```
+
+En Windows también se puede ejecutar:
+
+``` powershell
+.\mvnw.cmd spring-boot:run
+```
+
+El backend utiliza el puerto `8080`.
+
+### 4.5. Generar el frontend para Spring Boot
+
+Cuando se requiera servir React desde Spring Boot, ejecutar desde
+`frontend`:
+
+``` bash
+npm run build
+```
+
+Vite genera los archivos compilados en `src/main/resources/static`, de
+acuerdo con `frontend/vite.config.js`. Spring Boot sirve la aplicación
+web desde esos recursos estáticos.
+
+Para compilar el backend y generar el paquete:
+
+``` powershell
+.\mvnw.cmd clean package
+```
+
+## 5. Crear un usuario administrador
+
+El registro público crea cuentas con rol `USER`. No se debe intentar
+asignar el rol `ADMIN` desde el formulario ni enviando un campo
+adicional en la petición de registro.
+
+Para habilitar una cuenta administradora:
+
+1.  Iniciar la aplicación y registrar normalmente un usuario desde la
+    pantalla de registro.
+2.  Abrir el archivo `database/crear_administrador.sql`.
+3.  Reemplazar el correo de ejemplo del script por el correo exacto de
+    la cuenta recién registrada.
+4.  Ejecutar el script en la base de datos `auth_db`.
+5.  Cerrar la sesión si estaba iniciada y volver a ingresar con esa
+    cuenta para que la aplicación reconozca el rol actualizado.
+
+El script cambia el rol de la cuenta existente. No crea el usuario ni
+modifica su contraseña BCrypt.
+
+## 6. API REST
+
+**URL base local:** `http://localhost:8080`
+
+Las operaciones protegidas utilizan la sesión HTTP creada al iniciar
+sesión. El navegador o cliente REST debe conservar y enviar la cookie
+`JSESSIONID`. Las operaciones administrativas requieren una sesión cuyo
+usuario tenga rol `ADMIN`.
+
+### 6.1. Autenticación y perfil
+
+  ----------------------------------------------------------------------------------------
+  Servicio          Método y endpoint                  Acceso            Descripción /
+                                                                         historia de
+                                                                         usuario
+  ----------------- ---------------------------------- ----------------- -----------------
+  Registro          `POST /api/auth/registro`          Público           Crear una cuenta
+                                                                         de usuario
+                                                                         (`USER`). HU:
+                                                                         registro de
+                                                                         nuevos usuarios.
+
+  Inicio de sesión  `POST /api/auth/login`             Público           Validar
+                                                                         credenciales e
+                                                                         iniciar sesión.
+                                                                         HU: autenticación
+                                                                         de usuarios.
+
+  Cierre de sesión  `POST /api/auth/logout`            Sesión            Invalidar la
+                                                                         sesión activa.
+                                                                         HU: cierre seguro
+                                                                         de sesión.
+
+  Consultar perfil  `GET /api/auth/perfil`             Sesión            Consultar los
+                                                                         datos del usuario
+                                                                         autenticado. HU:
+                                                                         consulta del
+                                                                         perfil.
+
+  Actualizar perfil `PUT /api/auth/perfil/datos`       Sesión            Actualizar los
+                                                                         datos personales.
+                                                                         HU: edición del
+                                                                         perfil.
+
+  Cambiar           `PUT /api/auth/perfil`             Sesión            Verificar la
+  contraseña                                                             contraseña actual
+                                                                         y establecer una
+                                                                         nueva. HU: cambio
+                                                                         de contraseña.
+
+  Eliminar cuenta   `POST /api/auth/perfil/eliminar`   Sesión            Eliminar la
+                                                                         cuenta propia e
+                                                                         invalidar la
+                                                                         sesión. HU:
+                                                                         eliminación de
+                                                                         cuenta.
+  ----------------------------------------------------------------------------------------
+
+Ejemplo de cuerpo para registro:
+
+``` json
+{
+  "nombres": "Ana",
+  "apellidos": "Pérez",
+  "documento": "1000000000",
+  "fechaNacimiento": "2000-01-15",
+  "correo": "ana@example.com",
+  "contrasena": "ClaveSegura123!"
+}
+```
+
+Ejemplo de cuerpo para cambio de contraseña:
+
+``` json
+{
+  "contrasenaActual": "ClaveAnterior123!",
+  "nuevaContrasena": "ClaveNueva123!",
+  "confirmarContrasena": "ClaveNueva123!"
+}
+```
+
+### 6.2. Usuarios
+
+  -----------------------------------------------------------------------------------
+  Servicio          Método y endpoint             Acceso            Descripción /
+                                                                    historia de
+                                                                    usuario
+  ----------------- ----------------------------- ----------------- -----------------
+  Registrar usuario `POST /api/usuarios`          Público           Registrar una
+                                                                    cuenta con rol
+                                                                    `USER`. HU:
+                                                                    registro de
+                                                                    usuarios.
+
+  Listar usuarios   `GET /api/usuarios`           ADMIN             Consultar
+                                                                    usuarios sin
+                                                                    exponer
+                                                                    contraseñas. HU:
+                                                                    administración de
+                                                                    usuarios.
+
+  Consultar usuario `GET /api/usuarios/{id}`      ADMIN             Consultar un
+                                                                    usuario por su
+                                                                    identificador.
+                                                                    HU:
+                                                                    administración de
+                                                                    usuarios.
+
+  Actualizar        `PUT /api/usuarios/{id}`      ADMIN             Modificar los
+  usuario                                                           datos de una
+                                                                    cuenta. HU:
+                                                                    administración de
+                                                                    usuarios.
+
+  Eliminar usuario  `DELETE /api/usuarios/{id}`   ADMIN             Eliminar una
+                                                                    cuenta. HU:
+                                                                    administración de
+                                                                    usuarios.
+  -----------------------------------------------------------------------------------
+
+### 6.3. Eventos
+
+  ----------------------------------------------------------------------------------
+  Servicio          Método y endpoint            Acceso            Descripción /
+                                                                   historia de
+                                                                   usuario
+  ----------------- ---------------------------- ----------------- -----------------
+  Listar eventos    `GET /api/eventos`           Público           Consultar eventos
+                                                                   ordenados por
+                                                                   fecha. HU:
+                                                                   explorar eventos
+                                                                   culturales.
+
+  Consultar evento  `GET /api/eventos/{id}`      Público           Consultar el
+                                                                   detalle de un
+                                                                   evento. HU: ver
+                                                                   detalle del
+                                                                   evento.
+
+  Crear evento      `POST /api/eventos`          ADMIN             Registrar un
+                                                                   evento. HU:
+                                                                   administración de
+                                                                   eventos.
+
+  Actualizar evento `PUT /api/eventos/{id}`      ADMIN             Modificar un
+                                                                   evento existente.
+                                                                   HU:
+                                                                   administración de
+                                                                   eventos.
+
+  Eliminar evento   `DELETE /api/eventos/{id}`   ADMIN             Eliminar un
+                                                                   evento. HU:
+                                                                   administración de
+                                                                   eventos.
+  ----------------------------------------------------------------------------------
+
+Ejemplo de cuerpo para crear o actualizar un evento:
+
+``` json
+{
+  "titulo": "Festival cultural",
+  "descripcion": "Encuentro cultural de la ciudad",
+  "fechaHora": "2026-12-15T18:00:00",
+  "costo": 0,
+  "imagen": "/assets/images/evento.jpg",
+  "estado": "ACTIVO",
+  "categoria": { "idCategoria": 1 },
+  "lugar": { "idLugar": 1 }
+}
+```
+
+### 6.4. Categorías
+
+  -------------------------------------------------------------------------------------
+  Servicio          Método y endpoint               Acceso            Descripción /
+                                                                      historia de
+                                                                      usuario
+  ----------------- ------------------------------- ----------------- -----------------
+  Listar categorías `GET /api/categorias`           Público           Consultar las
+                                                                      categorías
+                                                                      disponibles. HU:
+                                                                      explorar eventos
+                                                                      por categoría.
+
+  Consultar         `GET /api/categorias/{id}`      Público           Consultar una
+  categoría                                                           categoría por
+                                                                      identificador.
+                                                                      HU: consulta de
+                                                                      categorías.
+
+  Crear categoría   `POST /api/categorias`          ADMIN             Registrar una
+                                                                      categoría. HU:
+                                                                      administración de
+                                                                      categorías.
+
+  Actualizar        `PUT /api/categorias/{id}`      ADMIN             Modificar una
+  categoría                                                           categoría. HU:
+                                                                      administración de
+                                                                      categorías.
+
+  Eliminar          `DELETE /api/categorias/{id}`   ADMIN             Eliminar una
+  categoría                                                           categoría si no
+                                                                      tiene eventos
+                                                                      asociados. HU:
+                                                                      administración de
+                                                                      categorías.
+  -------------------------------------------------------------------------------------
+
+Ejemplo de cuerpo:
+
+``` json
+{
+  "nombreCategoria": "Música",
+  "descripcion": "Eventos musicales"
+}
+```
+
+### 6.5. Lugares
+
+  ----------------------------------------------------------------------------------
+  Servicio          Método y endpoint            Acceso            Descripción /
+                                                                   historia de
+                                                                   usuario
+  ----------------- ---------------------------- ----------------- -----------------
+  Listar lugares    `GET /api/lugares`           Público           Consultar los
+                                                                   lugares
+                                                                   disponibles. HU:
+                                                                   consultar lugares
+                                                                   de eventos.
+
+  Consultar lugar   `GET /api/lugares/{id}`      Público           Consultar un
+                                                                   lugar por
+                                                                   identificador.
+                                                                   HU: detalle de
+                                                                   lugar.
+
+  Crear lugar       `POST /api/lugares`          ADMIN             Registrar un
+                                                                   lugar. HU:
+                                                                   administración de
+                                                                   lugares.
+
+  Actualizar lugar  `PUT /api/lugares/{id}`      ADMIN             Modificar un
+                                                                   lugar. HU:
+                                                                   administración de
+                                                                   lugares.
+
+  Eliminar lugar    `DELETE /api/lugares/{id}`   ADMIN             Eliminar un lugar
+                                                                   si no tiene
+                                                                   eventos
+                                                                   asociados. HU:
+                                                                   administración de
+                                                                   lugares.
+  ----------------------------------------------------------------------------------
+
+Ejemplo de cuerpo:
+
+``` json
+{
+  "nombreLugar": "Teatro Municipal",
+  "direccion": "Carrera 10 # 20-30",
+  "localidad": "Santa Fe",
+  "telefono": "6010000000",
+  "latitud": 4.6097,
+  "longitud": -74.0817,
+  "paginaWeb": "https://ejemplo.com"
+}
+```
+
+### 6.6. Respuestas HTTP
+
+  -----------------------------------------------------------------------
+  Código                              Significado
+  ----------------------------------- -----------------------------------
+  `200 OK`                            Consulta o actualización
+                                      satisfactoria.
+
+  `201 Created`                       Registro o creación satisfactoria.
+
+  `204 No Content`                    Operación completada sin contenido
+                                      de respuesta, como eliminación o
+                                      cierre de sesión.
+
+  `400 Bad Request`                   Datos ausentes o inválidos.
+
+  `401 Unauthorized`                  Credenciales no válidas o sesión no
+                                      autenticada.
+
+  `403 Forbidden`                     Usuario autenticado sin permisos de
+                                      administrador.
+
+  `404 Not Found`                     Recurso solicitado inexistente.
+
+  `409 Conflict`                      Duplicidad o conflicto con
+                                      relaciones existentes.
+  -----------------------------------------------------------------------
+
+Los errores de la API utilizan el campo JSON `mensaje`. Las contraseñas
+no se incluyen en las respuestas. Las solicitudes que contienen datos se
+validan mediante Jakarta Bean Validation.
+
+## 7. Pruebas de servicios
+
+Los endpoints pueden verificarse con Postman o un cliente REST
+equivalente.
+
+Para probar las rutas protegidas:
+
+1.  Ejecutar `POST /api/auth/login` con las credenciales de una cuenta
+    registrada.
+2.  Conservar la cookie `JSESSIONID` que devuelve el servidor.
+3.  Enviar las siguientes solicitudes utilizando esa misma sesión.
+4.  Para las operaciones administrativas, iniciar sesión con una cuenta
+    que tenga rol `ADMIN`.
+5.  Comprobar el código HTTP y el cuerpo de respuesta de cada operación.
+
+No se debe declarar una prueba como satisfactoria sin verificar la
+respuesta real del servidor.
+
+## 8. Estructura principal del proyecto
+
+``` text
+.
 ├── database/
-│   └── auth_db.sql
-│
+│   ├── auth_db.sql
+│   └── crear_administrador.sql
+├── docs/
+│   └── evidencias/
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── views/
+│   ├── package.json
+│   └── vite.config.js
 ├── src/
 │   └── main/
-│       ├── java/
-│       │   └── com/
-│       │       └── culturatech/
-│       │           └── auth/
-│       │               ├── AuthApplication.java
-│       │               │
-│       │               ├── config/
-│       │               │   └── PasswordConfig.java
-│       │               │
-│       │               ├── controller/
-│       │               │   └── AuthController.java
-│       │               │
-│       │               ├── dto/
-│       │               │   ├── AuthResponse.java
-│       │               │   ├── LoginRequest.java
-│       │               │   └── RegistroRequest.java
-│       │               │
-│       │               ├── model/
-│       │               │   └── Usuario.java
-│       │               │
-│       │               ├── repository/
-│       │               │   └── UsuarioRepository.java
-│       │               │
-│       │               └── service/
-│       │                   └── AuthService.java
-│       │
+│       ├── java/com/culturatech/auth/
+│       │   ├── config/
+│       │   ├── controller/
+│       │   ├── dto/
+│       │   ├── model/
+│       │   ├── repository/
+│       │   └── service/
 │       └── resources/
-│           └── application.properties
-│
-├── .gitignore
+│           └── static/
+├── DOCUMENTACION_TECNICA_GA7-AA5-EV03.md
+├── ENDPOINTS_GA7-AA5-EV03.txt
 ├── pom.xml
 └── README.md
 ```
 
-## 5. Descripción de los componentes
+## 9. Evidencias de la aplicación
 
-### 5.1. Clase principal
+### Acceso de administrador
 
-**Archivo:** `AuthApplication.java`
+![Acceso administrador](src/main/resources/static/assets/images/README/acceso-admin.png)
 
-Es el punto de entrada de la aplicación. Contiene el método `main` y utiliza `SpringApplication.run()` para iniciar el servicio Spring Boot.
+### Acceso de usuario
 
-### 5.2. Configuración de seguridad
+![Eventos usuario](src/main/resources/static/assets/images/README/eventos-usuario.png)
 
-**Archivo:** `config/PasswordConfig.java`
+### Panel administrativo
 
-Define un bean `PasswordEncoder` que utiliza `BCryptPasswordEncoder`.
+![Panel administrativo de eventos](src/main/resources/static/assets/images/README/admin-eventos.png)
 
-Su finalidad es cifrar las contraseñas antes de almacenarlas y permitir su posterior verificación sin guardar contraseñas en texto plano.
+## 10. Consideraciones para Git
 
-### 5.3. Controlador
+No incluir en el repositorio:
 
-**Archivo:** `controller/AuthController.java`
+-   `frontend/node_modules/`: se genera localmente con `npm install`.
+-   `target/`: se genera al compilar Maven.
+-   Archivos locales con credenciales o configuraciones privadas,
+    incluido `src/main/resources/application.properties`.
 
-Expone los endpoints REST bajo la ruta `/api/auth`.
+Para reconstruir el frontend en otra instalación, basta con ejecutar
+`npm install` dentro de `frontend` y luego `npm run build`.
 
-Sus responsabilidades son:
+## 11. Autoría
 
-- Recibir solicitudes HTTP POST.
-- Obtener los datos enviados en el cuerpo de la solicitud.
-- Aplicar validaciones mediante `@Valid`.
-- Delegar las operaciones al servicio de autenticación.
-- Devolver los códigos HTTP correspondientes a las operaciones.
-
-### 5.4. Servicio
-
-**Archivo:** `service/AuthService.java`
-
-Contiene la lógica de negocio del sistema.
-
-Sus principales operaciones son:
-
-- Registrar usuarios.
-- Comprobar si el correo o documento ya están registrados.
-- Normalizar los datos de registro.
-- Cifrar la contraseña mediante BCrypt.
-- Guardar el usuario en la base de datos.
-- Buscar usuarios para validar el inicio de sesión.
-- Comparar la contraseña recibida con la contraseña cifrada almacenada.
-
-### 5.5. Repositorio
-
-**Archivo:** `repository/UsuarioRepository.java`
-
-Extiende `JpaRepository<Usuario, Integer>` para utilizar las operaciones de persistencia proporcionadas por Spring Data JPA.
-
-Incluye consultas para:
-
-- Buscar usuarios por correo.
-- Comprobar si un correo ya existe.
-- Comprobar si un documento ya existe.
-
-### 5.6. Modelo
-
-**Archivo:** `model/Usuario.java`
-
-Representa la entidad Usuario y establece su correspondencia con la tabla `usuario` de MySQL mediante anotaciones JPA.
-
-Contiene los atributos de identificación, nombres, apellidos, documento, fecha de nacimiento, correo, contraseña y rol.
-
-Los campos de documento y correo tienen restricciones de unicidad.
-
-### 5.7. Objetos de transferencia de datos (DTO)
-
-| Archivo | Función |
-|---|---|
-| `RegistroRequest.java` | Recibe los datos necesarios para registrar un usuario y establece validaciones de entrada. |
-| `LoginRequest.java` | Recibe el correo y la contraseña para iniciar sesión. |
-| `AuthResponse.java` | Define la información pública que devuelve el servicio después de una operación satisfactoria, sin exponer la contraseña. |
-
-Los DTO permiten separar los datos recibidos por los endpoints de la entidad utilizada para persistir información.
-
-## 6. Base de datos
-
-**Archivo:** `database/auth_db.sql`
-
-Contiene el script SQL para crear la base de datos `auth_db` y la tabla `usuario`, junto con sus campos y restricciones de unicidad.
-
-### Preparación
-
-1. Iniciar el servidor MySQL.
-2. Abrir un cliente de administración de MySQL.
-3. Ejecutar el contenido de `database/auth_db.sql`.
-4. Verificar que exista la base de datos `auth_db`.
-
-La conexión se configura en:
-
-`src/main/resources/application.properties`
-
-Este archivo contiene los parámetros de conexión de la aplicación. Las credenciales locales deben mantenerse privadas y no deben publicarse en el repositorio.
-
-## 7. Dependencias y configuración
-
-**Archivo:** `pom.xml`
-
-Define las dependencias y la configuración de construcción del proyecto Maven.
-
-Entre sus dependencias principales se encuentran:
-
-- `spring-boot-starter-webmvc`: soporte para controladores y servicios web.
-- `spring-boot-starter-data-jpa`: persistencia mediante JPA.
-- `spring-boot-starter-validation`: validación de datos de entrada.
-- `spring-security-crypto`: funciones criptográficas utilizadas por BCrypt.
-- `mysql-connector-j`: conexión con MySQL.
-- Dependencias de pruebas de Spring.
-
-Se utiliza la biblioteca criptográfica de Spring Security sin incorporar el módulo completo de seguridad de Spring Security.
-
-## 8. Endpoints del servicio
-
-La ruta base del servicio es:
-
-```text
-/api/auth
-```
-
-### 8.1. Registro de usuarios
-
-| Propiedad | Valor |
-|---|---|
-| Método HTTP | POST |
-| Endpoint | `/api/auth/registro` |
-| Función | Registrar un usuario. |
-| Respuesta satisfactoria | 201 Created |
-| Respuesta por datos inválidos | 400 Bad Request |
-| Respuesta por duplicidad | 409 Conflict |
-
-Ejemplo de solicitud:
-
-```json
-{
-  "nombres": "Juan",
-  "apellidos": "Pérez",
-  "documento": "123456789",
-  "fechaNacimiento": "2000-01-15",
-  "correo": "juan@example.com",
-  "contrasena": "ClaveSegura123"
-}
-```
-
-### 8.2. Inicio de sesión
-
-| Propiedad | Valor |
-|---|---|
-| Método HTTP | POST |
-| Endpoint | `/api/auth/login` |
-| Función | Validar las credenciales del usuario. |
-| Respuesta satisfactoria | 200 OK |
-| Respuesta por credenciales incorrectas | 401 Unauthorized |
-
-Ejemplo de solicitud:
-
-```json
-{
-  "correo": "juan@example.com",
-  "contrasena": "ClaveSegura123"
-}
-```
-
-## 9. Flujo de funcionamiento
-
-### 9.1. Registro
-
-1. El cliente envía los datos del usuario al endpoint `/api/auth/registro`.
-2. `AuthController` recibe la solicitud y aplica las validaciones.
-3. `AuthService` comprueba si el correo o documento ya existen.
-4. Si no hay duplicidad, cifra la contraseña con BCrypt.
-5. El servicio solicita al repositorio guardar el usuario.
-6. `UsuarioRepository` realiza la persistencia en MySQL.
-7. El controlador devuelve la respuesta de registro.
-
-### 9.2. Inicio de sesión
-
-1. El cliente envía el correo y la contraseña al endpoint `/api/auth/login`.
-2. `AuthController` recibe y valida la solicitud.
-3. `AuthService` busca el usuario mediante el repositorio.
-4. Se verifica la contraseña recibida con BCrypt.
-5. Si las credenciales son correctas, se devuelve la información pública del usuario.
-6. Si las credenciales no coinciden, se devuelve una respuesta de autenticación no autorizada.
-
-## 10. Correspondencia con los requisitos de AA5-EV01
-
-| Requisito de la guía | Implementación |
-|---|---|
-| Crear un servicio web de registro e inicio de sesión. | `AuthController.java` |
-| Recibir datos del usuario. | `RegistroRequest.java` y `LoginRequest.java` |
-| Registrar usuarios en MySQL. | `AuthService.java` y `UsuarioRepository.java` |
-| Consultar usuarios para autenticar. | `UsuarioRepository.java` |
-| Evitar usuarios duplicados. | `AuthService.java` |
-| Cifrar contraseñas con BCrypt. | `PasswordConfig.java` y `AuthService.java` |
-| Utilizar una arquitectura por capas. | Controller, Service, Repository y Model |
-| Aplicar validaciones de entrada. | DTO y anotaciones de validación |
-| Mantener código organizado y comentado. | Clases y métodos del proyecto |
-| Utilizar herramientas de versionamiento. | Git y GitHub |
-
-### Observaciones para la revisión de requisitos
-
-La implementación actual presenta diferencias que deben tenerse en cuenta al contrastar los mensajes literales de la guía:
-
-- Para credenciales incorrectas, el servicio devuelve actualmente el mensaje `Credenciales incorrectas`, mientras que la guía establece `Error en la autenticación`.
-- Para registros duplicados, el servicio diferencia entre correo y documento duplicados, mientras que la guía presenta el mensaje general `El usuario ya existe`.
-- Los DTO contienen validaciones y el controlador utiliza `@Valid`; el mensaje y la estructura exacta de la respuesta para datos vacíos o inválidos deben verificarse durante las pruebas.
-
-Estas observaciones quedan identificadas para su revisión y no se presentan como resultados de pruebas ejecutadas.
-
-## 11. Preparación de AA5-EV02 – Pruebas del servicio web
-
-La evidencia AA5-EV02 corresponde a la comprobación del servicio desarrollado en AA5-EV01 mediante Postman.
-
-En esta etapa se deberán preparar y ejecutar los siguientes escenarios:
-
-| Caso | Operación | Resultado esperado según la guía |
-|---|---|---|
-| 1 | Registro exitoso | 201 – Usuario registrado correctamente |
-| 2 | Registro duplicado | 409 – El usuario ya existe |
-| 3 | Registro con datos vacíos | 400 – Bad Request |
-| 4 | Inicio de sesión correcto | 200 – Autenticación satisfactoria |
-| 5 | Contraseña incorrecta | 401 – Error en la autenticación |
-| 6 | Usuario inexistente | 401 – Error en la autenticación |
-
-El último caso debe utilizar una respuesta genérica para no revelar si el usuario existe o si la contraseña es incorrecta.
-
-### Evidencias que se deberán recopilar en AA5-EV02
-
-Para cada solicitud se deberá conservar:
-
-- Método HTTP y URL del endpoint.
-- Cuerpo JSON enviado.
-- Código de estado HTTP recibido.
-- Mensaje de respuesta del servicio.
-- Captura de pantalla del resultado.
-
-También se deberá preparar:
-
-- Colección de solicitudes en Postman.
-- Video que muestre la ejecución de las pruebas.
-- Documento con las capturas y resultados.
-- Archivo `ENDPOINT.txt` con las rutas del servicio.
-- Proyecto comprimido y enlace al repositorio.
-
-**Estado:** estos escenarios están documentados como actividades pendientes de AA5-EV02. No se presentan aquí como pruebas ejecutadas ni como resultados comprobados.
-
-## 12. Ejecución del proyecto
-
-### Requisitos previos
-
-- JDK 21.
-- MySQL 8.
-- Maven o Maven Wrapper incluido en el proyecto.
-- Base de datos `auth_db` creada.
-- Parámetros de conexión configurados localmente en `application.properties`.
-
-### Ejecución desde PowerShell
-
-Ubicarse en la carpeta raíz del proyecto y ejecutar:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-La aplicación inicia el servidor web integrado de Spring Boot. La configuración actual utiliza el puerto 8080.
-
-La dirección base local es:
-
-```text
-http://localhost:8080
-```
-
-Los endpoints disponibles son:
-
-```text
-POST http://localhost:8080/api/auth/registro
-POST http://localhost:8080/api/auth/login
-```
-
-## 13. Control de versiones
-
-El proyecto se administra mediante Git y se encuentra publicado en GitHub.
-
-**Repositorio:**
-
-https://github.com/Carlos7Orteg/AA5-EV01-Servicios-Web-Autenticacion
-
-**Rama principal:** `main`
-
-### Historial de versionamiento
-
-| Commit | Descripción |
-|---|---|
-| `a380b64` | Inicializa servicio web de autenticación. |
-| `5a1a310` | Agrega configuración de conexión a MySQL. |
-| Pendiente | Documentación técnica del proyecto y preparación de AA5-EV02. |
-
-El tercer commit corresponde a la actualización documental de este README.
-
-### Procedimiento de versionamiento
-
-Para revisar y publicar los cambios documentales:
-
-```powershell
-git status
-git diff -- README.md
-git add README.md
-git commit -m "docs: documentar servicio web de autenticacion AA5-EV01"
-git push origin main
-```
-
-Este procedimiento permite identificar los cambios, revisar el contenido antes de confirmarlo y publicarlo en el repositorio remoto.
-
-## 14. Alcance y continuidad del proyecto
-
-AA5-EV01 comprende el diseño, desarrollo y organización del servicio web de autenticación, su conexión con MySQL, la protección de contraseñas y el control de versiones.
-
-AA5-EV02 continúa sobre el mismo proyecto y se enfoca en comprobar los endpoints mediante Postman, recopilar evidencias y documentar los resultados.
-
-Por lo tanto, no se requiere crear otro servicio web para AA5-EV02: se utilizará la implementación desarrollada en esta evidencia.
-
----
-
-**Proyecto:** Servicio Web de Autenticación
-**Autor:** Carlos Rodrigo Ortegón L.  
-**Evidencia:** GA7-AA5-EV01 SENA
-**Tecnologías principales:** Java 21, Spring Boot, MySQL, JPA y BCrypt  
-**Repositorio:** https://github.com/Carlos7Orteg/AA5-EV01-Servicios-Web-Autenticacion
+**Proyecto:** CulturaTech Bogotá.   
+**Autor:** Carlos Rodrigo Ortegón L.   
+**Correo:** crortegon37@hotmail.com    
+**Evidencia:**Diseño y desarrollo de servicios web GA7-AA5-EV03 — SENA.  
+**Año:** 2026.
