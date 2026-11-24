@@ -508,16 +508,13 @@ respuesta real del servidor.
 ## 9. Evidencias de la aplicación
 
 ### Acceso de administrador
-
-![Acceso administrador](src/main/resources/static/assets/images/README/acceso-admin.png)
+![Acceso administrador](docs/evidencias/acceso-admin.png)
 
 ### Acceso de usuario
-
-![Eventos usuario](src/main/resources/static/assets/images/README/eventos-usuario.png)
+![Acceso de usuario](docs/evidencias/acceso-usuario.png)
 
 ### Panel administrativo
-
-![Panel administrativo de eventos](src/main/resources/static/assets/images/README/admin-eventos.png)
+![Panel administrativo de eventos](docs/evidencias/admin-eventos.png)
 
 ## 10. Consideraciones para Git
 
